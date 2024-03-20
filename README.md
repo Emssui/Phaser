@@ -1,1 +1,3 @@
-The lek1 folder contains phaser V2 and the lek1V3 contains phaser V3
+- The lek1 folder contains phaser V2 and the lek1V3 contains phaser V3.
+- The phaserleaf folder contains a projec about leaves falling down a tree in a interval of 6 seconds and they are random size.
+- 
