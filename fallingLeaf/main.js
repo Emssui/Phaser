@@ -73,6 +73,8 @@ class Example extends Phaser.Scene {
             this.load.image('tree' + i, 'assets/images/tree.png');
         }
 
+        this.load.video('background', 'assets/images/backimg.mp4', 'loadeddata', false, true);
+
         this.load.audio('scream1', 'assets/audio/scream1.mp3');
         this.load.audio('scream2', 'assets/audio/scream2.mp3');
         this.load.audio('scream3', 'assets/audio/scream3.mp3');
@@ -83,6 +85,13 @@ class Example extends Phaser.Scene {
         // Add tree image
         var tree = this.add.image(900, 450, 'tree');
         tree.setScale(2);
+        tree.setDepth(1)
+
+        // Add background video
+        let background = this.add.video(this.sys.game.config.width / 2, this.sys.game.config.height / 2, 'background');
+        background.setDepth(0);
+        background.setLoop(true);
+        background.play(true);
 
         // Set up a timer event to create leaves every 6 seconds
         this.time.addEvent({
@@ -114,10 +123,11 @@ class Example extends Phaser.Scene {
             randomAudio.play();
 
             const leaf = this.physics.add.image(pos.x, pos.y, 'leaf');
+            leaf.setDepth(2)
 
             this.cameras.main.startFollow(leaf)
             
-            leaf.setScale(0.3);
+            leaf.setScale(Math.random());
             leaf.setCollideWorldBounds(true);
             leaf.setBounce(0);
             leaf.setDrag(100);
@@ -144,7 +154,6 @@ const config = {
     scene: Example,
     width: 1920,
     height: 860,
-    backgroundColor: '#4488aa',
     physics: {
         default: 'arcade',
         arcade: {
