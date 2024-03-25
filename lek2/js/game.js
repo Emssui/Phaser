@@ -1,6 +1,6 @@
 class Game extends Phaser.Scene {
     constructor() {
-        super();
+        super({ key: 'GameScene'});
     };
 
     preload() {
@@ -63,7 +63,6 @@ class Game extends Phaser.Scene {
             loadingText.destroy();
             percentText.destroy();
             assetText.destroy();
-            console.log("dwdwdw")
         });
     
         this.load.image('player1', 'assets/images/piskel1.png');
@@ -73,17 +72,17 @@ class Game extends Phaser.Scene {
         this.load.image('coin2', 'assets/images/coin2.png');
 
         // load tileset
-        this.load.image('tiles', 'assets/tiles/grass.png');
+        this.load.image('tiles', 'assets/tiles/spritesheet.png');
 
         // load tilemap
         this.load.tilemapTiledJSON('map', 'assets/tiles/map.json');
 
         this.load.image('ground', 'assets/images/ground.png');
         this.load.image('ceiling', 'assets/images/untitled.png');  
+        this.load.image('lava', 'assets/images/lava.png');
         
         for(let i= 0; i < 500; i++) {
             this.load.image('ground' + i, 'assets/images/ground.png');
-            console.log(i)
         }
     };
 
@@ -91,12 +90,16 @@ class Game extends Phaser.Scene {
         const map = this.make.tilemap({ 
             key: 'map'
         });
-        const tileset = map.addTilesetImage('grass', 'tiles');
+        const tileset = map.addTilesetImage('spritesheet', 'tiles');
 
-        const layer = map.createLayer('Tile Layer 1', tileset, 0, 0 )
-        var player1 = this.physics.add.sprite(200, 400, 'player1');
-        var coin = this.physics.add.sprite(400, 600, 'coin1');
-        var coin1 = this.physics.add.sprite(1000, 600, 'coin1');
+        const layer = map.createLayer('Tile Layer 1', tileset, -600, -600);
+        
+        var player1 = this.physics.add.sprite(400, 400, 'player1');
+        this.lava = this.physics.add.sprite(1900, 950, 'lava');
+        
+        this.lava.setDepth(-1)
+        this.lava.setScale(19,1)
+        this.lava.body.allowGravity = false; // Disable gavity for the lava  
 
         this.scoreText = this.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#000' });
 
@@ -117,24 +120,49 @@ class Game extends Phaser.Scene {
         player1.setBounce(0);
         player1.setDrag(100);
         player1.setGravityY(300);
+        player1.setScale(0.6);
 
         // Store the player reference for movement
         this.player = player1;
 
-        this.anims.create({
-            key: 'coinFrames',
-            frames:[
-                {key: 'coin1'},
-                {key: 'coin2'},
-            ],
-            frameRate: 2,
-            repeat: -1
+         // Create an array to store coin sprites
+         this.coins = this.physics.add.group({
+            key: 'coin1',
+            repeat: 40, // Number of coins to create
+            setXY: { x: 1000, y: 100, stepX: 140 } // Position of the first coin and the distance between coins
         });
-        
-        coin.setScale(0.2);
-        coin.play('coinFrames');
-        coin1.setScale(0.2);
-        coin1.play('coinFrames');
+
+           // Set properties for each coin
+           this.coins.children.iterate(function (coin) {
+            coin.setScale(0.15); // Adjust scale as needed
+            coin.setGravityY(500);
+            this.physics.add.collider(coin,layer);
+            coin.setBounce(0.5);
+
+            // Define coin animation for each coin
+            coin.anims.create({
+                key: 'coinframes',
+                frames:[
+                    {key: 'coin1'},
+                    {key: 'coin2'}
+                ],
+                frameRate: 3, // Adjust frame rate as needed
+                repeat: -1 // Loop indefinitely
+            });
+
+            // Play coin animation for each coin
+            coin.play('coinframes');
+        }, this);
+
+        // Initialize score
+        this.score = 0;
+
+        // Create score text
+        this.scoreText = this.add.text(20, 60, 'Score: 0', { fontSize: '50px', fill: '#fff' });       
+
+        // Set up collision between player and coins
+        this.physics.add.overlap(this.player, this.coins, this.collectCoin, null, this);
+        this.cameras.main.zoomTo(1.3);
 
         // Setup keyboard keys for movement
         this.keys = this.input.keyboard.addKeys('W,A,S,D,right,left,up');
@@ -145,32 +173,49 @@ class Game extends Phaser.Scene {
         // Create ground group
         this.groundGroup = this.physics.add.staticGroup();
 
-        // Add ground sprites to the group
-        this.groundGroup.create(1000, 980 , 'ground');
-        this.groundGroup.create(950, -500, 'ceiling').setScale(2);
+        layer.setCollisionBetween(0, 100);
 
         // Check for overlap with ground to update isPlayerOnGround flag
-        this.physics.add.collider(player1, this.groundGroup, () => {
+        this.physics.add.collider(player1, layer, () => {
             this.isPlayerOnGround = true;
         }, null, this);
 
-        this.physics.add.collider(coin, this.groundGroup);
-        this.physics.add.collider(coin1, this.groundGroup);
+        this.physics.add.collider(this.coins, layer);
 
         this.score = 0;
+        
+        // lava restart
+        this.physics.add.collider(this.player, this.lava, this.restartScene, null, this);
 
-        // Create score text
-        this.scoreText = this.add.text(20, 60, 'Score: 0', { fontSize: '50px', fill: '#fff' });
-    
-        // Enable collision between player and coin
-        this.physics.add.collider(this.player, coin, this.collectCoin, null, this);
-        this.physics.add.collider(this.player, coin1, this.collectCoin, null, this);
+        // Ground check hitbox
+        this.groundHitbox = this.physics.add.sprite(player1.x, player1.y + player1.height / 2, 'ground');
+        this.groundHitbox.setVisible(false); // Make it invisible
+
+        // Setup collision between player and ground hitbox
+        this.physics.add.collider(player1, this.groundHitbox, () => {
+            this.isPlayerOnGround = true;
+        }, null, this);
+
     };
 
     update() {
         this.cameras.main.scrollX = this.player.x - this.cameras.main.width / 2;
         this.movePlayer();
+
+        this.scoreText.setPosition(this.player.x - 100, 250);
+        this.groundHitbox.setPosition(this.player.x, this.player.y + this.player.height / 2);
     };
+
+    restartScene() {
+        // Restart the current scene
+        this.scene.restart();
+    }
+
+    collectCoin(player, coin) {
+        coin.disableBody(true, true); // Remove the coin from the screen
+        this.score += 10; // Increase score by 10 for each coin collected
+        this.scoreText.setText('Score: ' + this.score); // Update score text
+    }
 
     movePlayer() {
         // If the A key or left arrow key is pressed
@@ -212,15 +257,13 @@ class Game extends Phaser.Scene {
 const config = {
     type: Phaser.AUTO,
     parent: 'phaser-example',
-    scene: Game,
     width: 1820,
     height: 980,
     backgroundColor:'#0000FF',
     physics: {
         default: 'arcade',
         arcade: {
-            gravity: { y: 300 },
-            debug: true // Enable debug mode
+            gravity: { y: 400 }
         }
     },
     scale: {
@@ -229,6 +272,8 @@ const config = {
         // Center vertically and horizontally
         autoCenter: Phaser.Scale.CENTER_BOTH
     },
+    scene: [Menu, Game],
+
 };
 
 const game = new Phaser.Game(config);
