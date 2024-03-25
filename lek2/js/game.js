@@ -95,7 +95,7 @@ class Game extends Phaser.Scene {
         const layer = map.createLayer('Tile Layer 1', tileset, -600, -600);
         
         var player1 = this.physics.add.sprite(400, 400, 'player1');
-        this.lava = this.physics.add.sprite(1900, 950, 'lava');
+        this.lava = this.physics.add.sprite(1900, 930, 'lava');
         
         this.lava.setDepth(-1)
         this.lava.setScale(19,1)
