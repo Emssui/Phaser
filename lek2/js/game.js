@@ -190,12 +190,6 @@ class Game extends Phaser.Scene {
         // Ground check hitbox
         this.groundHitbox = this.physics.add.sprite(player1.x, player1.y + player1.height / 2, 'ground');
         this.groundHitbox.setVisible(false); // Make it invisible
-
-        // Setup collision between player and ground hitbox
-        this.physics.add.collider(player1, this.groundHitbox, () => {
-            this.isPlayerOnGround = true;
-        }, null, this);
-
     };
 
     update() {
