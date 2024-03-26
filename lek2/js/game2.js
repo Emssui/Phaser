@@ -1,7 +1,6 @@
-
-    class Game extends Phaser.Scene {
+    class Game1 extends Phaser.Scene {
         constructor() {
-            super({ key: 'GameScene'});
+            super({ key: 'GameScene2'});
         };
 
         preload() {
@@ -73,10 +72,10 @@
             this.load.image('coin2', 'assets/images/coin2.png');
 
             // load tileset
-            this.load.image('tiles', 'assets/tiles/spritesheet.png');
+            this.load.image('iceTiles', 'assets/tiles/spritesheet2.png');
 
             // load tilemap
-            this.load.tilemapTiledJSON('map', 'assets/tiles/map.json');
+            this.load.tilemapTiledJSON('map2', 'assets/tiles/map2.json');
 
             this.load.image('ground', 'assets/images/ground.png');
             this.load.image('ceiling', 'assets/images/untitled.png');  
@@ -90,16 +89,16 @@
 
         create() {
             const map = this.make.tilemap({ 
-                key: 'map'
+                key: 'map2'
             });
-            const tileset = map.addTilesetImage('spritesheet', 'tiles');
+            const tileset = map.addTilesetImage('ice', 'iceTiles');
 
-            const groundLayer = map.createLayer('Tile Layer 1', tileset, -600, -600);
-            const layer = map.createLayer('walls', tileset, -600, -600);
+            const groundLayer = map.createLayer('Tile Layer 1', tileset, -600, -100);
+            const layer = map.createLayer('walls', tileset, -600, -100);
 
-            var player1 = this.physics.add.sprite(5000, 400, 'player1');
+            var player1 = this.physics.add.sprite(300, 400, 'player1');
             this.lava = this.physics.add.sprite(1950, 930, 'lava');
-            this.btn = this.physics.add.sprite(5950, 1400, 'button');
+            this.btn = this.physics.add.sprite(5950, 870, 'button');
             
             this.lava.setDepth(-1)
             this.lava.setScale(17,1)
@@ -109,17 +108,6 @@
             this.btn.body.allowGravity = false; // Disable gavity for the lava  
 
             this.scoreText = this.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#000' });
-
-            // Create animation
-            this.anims.create({
-                key: 'playerFrames',
-                frames:[
-                    {key: 'player1'},
-                    {key: 'player2'},
-                ],
-                frameRate: 4,
-                repeat: -1
-            });
 
             player1.play('playerFrames');
 
@@ -133,29 +121,18 @@
             this.player = player1;
 
             // Create an array to store coin sprites
-            this.coins = this.physics.add.group({
+            this.coins2 = this.physics.add.group({
                 key: 'coin1',
-                repeat: 33, // Number of coins to create
-                setXY: { x: 1000, y: 100, stepX: 140 } // Position of the first coin and the distance between coins
+                repeat: 12, // Number of coins to create
+                setXY: { x: 1000, y: 100, stepX: 250 } // Position of the first coin and the distance between coins
             });
 
             // Set properties for each coin
-            this.coins.children.iterate(function (coin) {
+            this.coins2.children.iterate(function (coin) {
                 coin.setScale(0.15); // Adjust scale as needed
                 coin.setGravityY(500);
                 this.physics.add.collider(coin,layer);
                 coin.setBounce(0.5);
-
-                // Define coin animation for each coin
-                coin.anims.create({
-                    key: 'coinframes',
-                    frames:[
-                        {key: 'coin1'},
-                        {key: 'coin2'}
-                    ],
-                    frameRate: 3, // Adjust frame rate as needed
-                    repeat: -1 // Loop indefinitely
-                });
 
                 // Play coin animation for each coin
                 coin.play('coinframes');
@@ -168,7 +145,7 @@
             this.scoreText = this.add.text(20, 60, 'Score: 0', { fontSize: '50px', fill: '#fff' });       
 
             // Set up collision between player and coins
-            this.physics.add.overlap(this.player, this.coins, this.collectCoin, null, this);
+            this.physics.add.overlap(this.player, this.coins2, this.collectCoin, null, this);
             this.cameras.main.zoomTo(1.3);
 
             // Setup keyboard keys for movement
@@ -188,16 +165,14 @@
                 this.isPlayerOnGround = true;
             }, null, this);
 
-            this.physics.add.collider(this.coins, groundLayer);
+            this.physics.add.collider(this.coins2, groundLayer);
             this.physics.add.collider(player1, layer);
 
             this.score = 0;
             
             // lava restart
             this.physics.add.collider(this.player, this.lava, this.restartScene, null, this);            
-            this.physics.add.collider(this.player, this.btn, () => {
-                this.scene.start("GameScene2");
-            });
+            this.physics.add.collider(this.player, this.btn, this.restartScene, null, this);
 
 
             // Ground check hitbox
@@ -210,7 +185,14 @@
                 this.isPlayerOnGround = false;
             }
 
-            this.cameras.main.scrollX = this.player.x - this.cameras.main.width / 2;
+            if (this.player.x >= 7300) {
+                // Set the camera to follow the player's y-coordinate
+                this.cameras.main.scrollY = this.player.y - this.cameras.main.height / 2;
+            } else {
+                // Otherwise, set the camera to follow the player's x-coordinate
+                this.cameras.main.scrollX = this.player.x - this.cameras.main.width / 2;
+            }
+
             this.movePlayer();
 
             this.scoreText.setPosition(this.player.x - 100, 250);
@@ -266,4 +248,4 @@
             coin.disableBody(true, true);
         }
     };
-   
+
