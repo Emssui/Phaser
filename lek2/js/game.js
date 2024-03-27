@@ -97,7 +97,7 @@
             const groundLayer = map.createLayer('Tile Layer 1', tileset, -600, -600);
             const layer = map.createLayer('walls', tileset, -600, -600);
 
-            var player1 = this.physics.add.sprite(5000, 400, 'player1');
+            var player1 = this.physics.add.sprite(340, 400, 'player1');
             this.lava = this.physics.add.sprite(1950, 930, 'lava');
             this.btn = this.physics.add.sprite(5950, 1400, 'button');
             
@@ -225,8 +225,14 @@
         
         collectCoin(player, coin) {
             coin.disableBody(true, true); // Remove the coin from the screen
-            this.score += 10; // Increase score by 10 for each coin collected
-            this.scoreText.setText('Score: ' + this.score); // Update score text
+            this.tweens.add({
+                targets: this,
+                score: this.score + 10,
+                duration: 200,
+                onUpdate: () => {
+                  this.scoreText.setText("Score: " + Math.floor(this.score));
+                },
+            });
         }
 
         movePlayer() {
@@ -253,17 +259,6 @@
                 // Set the player to not be on the ground
                 this.isPlayerOnGround = false;
             }
-        }
-
-        collectCoin(player, coin) {
-            // Increment score
-            this.score += 10;
-        
-            // Update score text
-            this.scoreText.setText('Score: ' + this.score);
-        
-            // Disable coin
-            coin.disableBody(true, true);
         }
     };
    
