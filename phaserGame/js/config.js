@@ -16,7 +16,7 @@ const config = {
         // Center vertically and horizontally
         autoCenter: Phaser.Scale.CENTER_BOTH
     },
-    scene: [ Menu, Game, Game1, Game2 ],
+    scene: [ Menu, Game, Game1, Game2, Game4 ],
 };
 
 const game = new Phaser.Game(config);

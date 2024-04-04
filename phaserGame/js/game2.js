@@ -233,7 +233,6 @@ class Game1 extends Phaser.Scene {
         } else {
             this.cameras.main.scrollX = this.player.x - this.cameras.main.width / 2;
             this.scoreText.setPosition(this.player.x - 100, 250);
-
         }
         
         // Move buttons
