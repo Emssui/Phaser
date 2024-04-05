@@ -88,8 +88,6 @@ class Game4 extends Phaser.Scene {
             this.load.image('ground' + i, 'assets/images/ground.png');
         }
 
-        this.music = new Music(this);
-        music.preload();
     };
 
     create() {
@@ -220,11 +218,9 @@ class Game4 extends Phaser.Scene {
         this.groundHitbox.setVisible(false); // Make it invisible
 
         this.timeout = true;
-        music.create();
     };
 
     update() {
-        console.log(this.player.x);
         for (let i = 0; i < this.background.length; ++i) {
             const bg = this.background[i];
 

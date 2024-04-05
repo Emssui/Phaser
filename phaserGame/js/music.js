@@ -1,16 +1,3 @@
-class Music {
-    constructor() {
-      
-    }
+var song = document.getElementById("song");
 
-    preload() {
-        this.load.audio('song', 'assets/audios/song.mp3');
-    }
-
-    create() {
-        this.music = this.sound.add('song', { loop: true });
-        this.music.play();
-    }
-}
-
-const music = new Music ();
+song.volume = 0.2;
