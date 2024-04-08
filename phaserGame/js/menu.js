@@ -24,12 +24,12 @@ class Menu extends Phaser.Scene {
         }
         else
         {
-            this.children.list[0].setFillStyle(0x000000);
+            this.children.list[0].setFillStyle(0x0000ff);
         }
         // if you click inside the box variable then it will change the scene
         if (this.input.activePointer.leftButtonDown() && this.input.activePointer.x > this.sys.game.config.width / 2 - 150 && this.input.activePointer.x < this.sys.game.config.width / 2 + 150 && this.input.activePointer.y > this.sys.game.config.height / 2 - 50 && this.input.activePointer.y < this.sys.game.config.height / 2 + 50)
         {
-            this.scene.start('GameScene4');
+            this.scene.start('GameScene');
         }
     }
 }

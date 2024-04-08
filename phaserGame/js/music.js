@@ -1,3 +1,4 @@
 var song = document.getElementById("song");
 
-song.volume = 0.2;
+song.volume = 0.1;
+song.loop = true;

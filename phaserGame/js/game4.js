@@ -17,10 +17,10 @@ class Game4 extends Phaser.Scene {
         progressBox.fillRect(width / 2 - 30, height / 2 - 30, 2, 2);
         var loadingText = this.make.text({
             x: width / 2,
-            y: height / 2 - 50,
-            text: 'Loading...',
+            y: height / 2 - 70,
+            text: 'Level 4',
             style: {
-                font: '22px monospace',
+                font: '40px monospace',
                 fill: '#ddddd'
             }
         });
@@ -78,16 +78,18 @@ class Game4 extends Phaser.Scene {
         // load tileset
         this.load.image('tiles4', 'assets/tiles/spritesheet4.png');
 
+        this.load.audio('gravity', 'assets/audios/gravity.mp3');
+        this.load.audio('coinSound', 'assets/audios/coin.mp3');
+
         // load tilemap
         this.load.tilemapTiledJSON('map4', 'assets/tiles/map4.json');
 
-        this.load.image('button', 'assets/images/water.png');
+        this.load.image('water', 'assets/images/water.png');
         this.load.image('background', 'assets/images/parallax.png');
 
         for(let i= 0; i < 500; i++) {
             this.load.image('ground' + i, 'assets/images/ground.png');
         }
-
     };
 
     create() {
@@ -112,12 +114,16 @@ class Game4 extends Phaser.Scene {
         layer.setDepth(1);
 
         var player1 = this.physics.add.sprite(400, 400, 'player1');
-        this.btn = this.physics.add.sprite(5540, -400, 'button');
+        this.btn = this.physics.add.sprite(5540, -400, 'water');
         
+        this.sfx = this.sound.add('gravity');
+        this.coinSound = this.sound.add('coinSound');
+        this.coinSound.volume = 0.3;
+
         this.btn.setDepth(0)
         this.btn.body.allowGravity = false; // Disable gavity for the lava  
 
-        this.scoreText = this.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#000' });
+        this.scoreText = this.add.text(16, 16, 'Score: ' + scoreManager.score, { fontSize: '32px', fill: '#000' });       
         this.Text = this.add.text(300, 350, 'Level 4', { fontSize: '50px', fill: '#fff' });
         this.Text = this.add.text(160, 400, 'W and S to change gravity', { fontSize: '50px', fill: '#fff' });
 
@@ -173,7 +179,7 @@ class Game4 extends Phaser.Scene {
         this.score = 0;
 
         // Create score text
-        this.scoreText = this.add.text(20, 60, 'Score: 0', { fontSize: '50px', fill: '#fff' });  
+        this.scoreText = this.add.text(20, 60, 'Score: ' + scoreManager.score, { fontSize: '50px', fill: '#fff' });  
         this.scoreText.setDepth(2);     
 
         // Set up collision between player and coins
@@ -208,7 +214,11 @@ class Game4 extends Phaser.Scene {
         this.score = 0;
         
         // lava restart
-        this.physics.add.collider(this.player, layer, this.restartScene, null, this);            
+        this.physics.add.collider(this.player, layer, () => {
+            this.sound.stopAll();
+            this.scene.start("DeathScene");
+        }); 
+
         this.physics.add.collider(this.player, this.btn, () => {
             this.scene.start("GameScene5");
         });
@@ -259,6 +269,7 @@ class Game4 extends Phaser.Scene {
     collectCoin(player, coin) {
         coin.disableBody(true, true); // Remove the coin from the screen
         scoreManager.increaseScore(10); // Increase the score
+        this.coinSound.play();
         this.scoreText.setText("Score: " + scoreManager.getScore()); // Update score text
     }
 
@@ -281,6 +292,7 @@ class Game4 extends Phaser.Scene {
 
 
         if (this.keys.W.isDown && this.isPlayerOnGround && this.touch == true) {
+            this.sfx.play();
             this.physics.world.gravity.y = -400;
 
             this.tweens.add({
@@ -296,9 +308,9 @@ class Game4 extends Phaser.Scene {
                 angle: this.player.angle + 180,
                 duration: 1000
             })
+            this.sfx.play();
 
             this.physics.world.gravity.y = 400;
-            
     
             this.isPlayerOnGround = false;
         }

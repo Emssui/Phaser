@@ -16,10 +16,10 @@ class Game extends Phaser.Scene {
         progressBox.fillRect(width / 2 - 30, height / 2 - 30, 2, 2);
         var loadingText = this.make.text({
             x: width / 2,
-            y: height / 2 - 50,
-            text: 'Loading...',
+            y: height / 2 - 70,
+            text: 'Level 1',
             style: {
-                font: '22px monospace',
+                font: '40px monospace',
                 fill: '#ddddd'
             }
         });
@@ -85,6 +85,9 @@ class Game extends Phaser.Scene {
         this.load.image('lava', 'assets/images/lava.png');
         this.load.image('button', 'assets/images/button.png');
 
+        this.load.audio('jump', 'assets/audios/jump.mp3');
+        this.load.audio('coinSound', 'assets/audios/coin.mp3');
+
         for(let i= 0; i < 500; i++) {
             this.load.image('ground' + i, 'assets/images/ground.png');
         }
@@ -113,6 +116,11 @@ class Game extends Phaser.Scene {
         this.scoreText = this.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#000' });
         this.Text = this.add.text(300, 350, 'Level 1', { fontSize: '50px', fill: '#fff' });
 
+        this.jump = this.sound.add('jump');
+        this.coinSound = this.sound.add('coinSound');
+
+        this.jump.volume = 0.1;
+        this.coinSound.volume = 0.3;
 
         // Create animation
         this.anims.create({
@@ -198,9 +206,11 @@ class Game extends Phaser.Scene {
         this.score = 0;
         
         // lava restart
-        this.physics.add.collider(this.player, this.lava, this.restartScene, null, this);            
+        this.physics.add.collider(this.player, this.lava, () => {
+            this.scene.start("DeathScene");
+        });
+
         this.physics.add.collider(this.player, this.btn, () => {
-    
             this.scene.start("GameScene2");
         });
 
@@ -232,6 +242,7 @@ class Game extends Phaser.Scene {
     collectCoin(player, coin) {
         coin.disableBody(true, true); // Remove the coin from the screen
         scoreManager.increaseScore(10); // Increase the score
+        this.coinSound.play();
         this.scoreText.setText("Score: " + scoreManager.getScore()); // Update score text
     }
 
@@ -254,6 +265,7 @@ class Game extends Phaser.Scene {
 
         // If the W key or up arrow key is pressed and the player is on the ground
         if ((this.keys.W.isDown || this.keys.up.isdown) && this.isPlayerOnGround) {
+            this.jump.play();
             // Move the player upward (jump)
             this.player.setVelocityY(-320);
             // Set the player to not be on the ground

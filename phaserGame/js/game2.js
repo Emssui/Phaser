@@ -25,10 +25,10 @@ class Game1 extends Phaser.Scene {
         progressBox.fillRect(width / 2 - 30, height / 2 - 30, 2, 2);
         var loadingText = this.make.text({
             x: width / 2,
-            y: height / 2 - 50,
-            text: 'Loading...',
+            y: height / 2 - 70,
+            text: 'Level 2',
             style: {
-                font: '22px monospace',
+                font: '40px monospace',
                 fill: '#ddddd'
             }
         });
@@ -90,6 +90,9 @@ class Game1 extends Phaser.Scene {
         this.load.image('water', 'assets/images/water.png');
         this.load.image('water2', 'assets/images/water2.png');
 
+        this.load.audio('jump', 'assets/audios/jump.mp3');
+        this.load.audio('coinSound', 'assets/audios/coin.mp3');
+
         this.load.image('button', 'assets/images/button.png');
         this.load.image('background', 'assets/images/parallax.png');
 
@@ -126,6 +129,11 @@ class Game1 extends Phaser.Scene {
         this.water = this.physics.add.sprite(1950, 1160, 'water');
         this.btn = this.physics.add.sprite(8600, 3180, 'button');
         
+        this.jump = this.sound.add('jump');
+        this.coinSound = this.sound.add('coinSound');
+
+        this.jump.volume = 0.1;
+        this.coinSound.volume = 0.3;
          
         this.btn.setDepth(-1)
         this.btn.body.allowGravity = false;
@@ -199,8 +207,15 @@ class Game1 extends Phaser.Scene {
         this.score = 0;
         this.scoreText.setDepth(2);
     
-        this.physics.add.collider(this.player, this.water, this.restartScene, null, this); 
-        this.physics.add.collider(this.player, this.buttons, this.restartScene, null, this); 
+        this.physics.add.collider(this.player, this.water, () => {
+            this.sound.stopAll();
+            this.scene.start("DeathScene");
+        }); 
+
+        this.physics.add.collider(this.player, this.buttons, () => {
+            this.sound.stopAll();
+            this.scene.start("DeathScene");
+        }); 
     
         // Create the buttons
         this.buttonCoordinates.forEach((coord, index) => {
@@ -262,6 +277,7 @@ class Game1 extends Phaser.Scene {
         } 
     
         if ((this.keys.W.isDown || this.keys.up.isDown) && this.isPlayerOnGround) {
+            this.jump.play();
             this.player.setVelocityY(-320);
             this.isPlayerOnGround = false;
         }
@@ -279,14 +295,10 @@ class Game1 extends Phaser.Scene {
         return button;
     }
 
-    restartScene() {
-        scoreManager.score = 0;
-        this.scene.restart();
-    }
-
     collectCoin(player, coin) {
         coin.disableBody(true, true); // Remove the coin from the screen
         scoreManager.increaseScore(10); // Increase the score
+        this.coinSound.play();
         this.scoreText.setText("Score: " + scoreManager.getScore()); // Update score text
     }
 };

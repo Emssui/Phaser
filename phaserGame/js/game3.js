@@ -28,10 +28,10 @@ class Game2 extends Phaser.Scene {
         progressBox.fillRect(width / 2 - 30, height / 2 - 30, 2, 2);
         var loadingText = this.make.text({
             x: width / 2,
-            y: height / 2 - 50,
-            text: 'Loading...',
+            y: height / 2 - 70,
+            text: 'Level 3',
             style: {
-                font: '22px monospace',
+                font: '40px monospace',
                 fill: '#ddddd'
             }
         });
@@ -102,6 +102,9 @@ class Game2 extends Phaser.Scene {
         for(let i = 0; i < 500; i++) {
             this.load.image('ground' + i, 'assets/images/ground.png');
         }
+
+        this.load.audio('jump3', 'assets/audios/jetpack.mp3');
+        this.load.audio('coinSound', 'assets/audios/coin.mp3');
     };
 
     create() {
@@ -139,6 +142,10 @@ class Game2 extends Phaser.Scene {
         this.jetPack.body.allowGravity = false;
         this.isjetpackTrue = false;
         
+        this.jump = this.sound.add('jump3');
+        this.coinSound = this.sound.add('coinSound');
+        this.coinSound.volume = 0.3;
+
         this.btn.setDepth(-1)
         this.btn.body.allowGravity = false;
 
@@ -244,17 +251,23 @@ class Game2 extends Phaser.Scene {
         this.groundHitbox = this.physics.add.sprite(player1.x, player1.y + player1.height / 2, 'ground');
         this.groundHitbox.setVisible(false);
 
+        this.player.setVelocityX(400);
         this.frameCounter = 0;
     };
     
     update() {
+        this.frameCounter++;
         
+        if(this.frameCounter % 20 == 0){
+            this.player.setVelocityX(this.player.body.velocity.x + 100);
+        }
+    
         for (let i = 0; i < this.background.length; ++i) {
             const bg = this.background[i];
-
+    
             bg.sprite.tilePositionX = this.cameras.main.scrollX * bg.ratioX;
         }
-
+    
         if(this.player.body.velocity.y > 30) {
             this.isPlayerOnGround = false;
         }
@@ -263,23 +276,25 @@ class Game2 extends Phaser.Scene {
         this.cameras.main.scrollX = this.player.x - this.cameras.main.width / 2;
         this.scoreText.setPosition(this.player.x - 100, 250);
         
-        this.player.setVelocityX(700);
-
-        if (this.keys.W.isDown  && (this.isPlayerOnGround || this.isjetpackTrue)) {
-            this.player.setVelocityY(-400);
-            this.isPlayerOnGround = false;
-
-            if (this.isjetpackTrue && this.keys.W.isDown) {
+        if (this.keys.W.isDown && (this.isPlayerOnGround || this.isjetpackTrue)) {
+            if (!this.isJetpackActive) {
+                this.jump.play();
+                this.isJetpackActive = true;
+                this.particles.setVisible(true);
                 this.particles.setDepth(0);
                 this.particles.startFollow(this.player);
-            } 
-        } 
-        if(!this.keys.W.isDown || this.player.body.velocity.y > 0) {
-            this.particles.setVisible(false);
-        } else if(this.keys.W.isDown && this.isjetpackTrue) {
-            this.particles.setVisible(true);
+            }
+            this.player.setVelocityY(-400);
+            this.isPlayerOnGround = false;
+        } else {
+            if (this.isJetpackActive) {
+                this.jump.stop();
+                this.isJetpackActive = false;
+                this.particles.setVisible(false);
+            }
         }
     }
+    
 
     createMissile() {
         const missilePosition = [
@@ -303,7 +318,10 @@ class Game2 extends Phaser.Scene {
 
             particles.setDepth(2);
             
-            this.physics.add.collider(this.player, missile, this.restartScene, null, this);
+            this.physics.add.collider(this.player, missile,() => {
+                this.sound.stopAll();
+                this.scene.start("DeathScene");
+            });
         });
     }
     
@@ -315,6 +333,7 @@ class Game2 extends Phaser.Scene {
     collectCoin(player, coin) {
         coin.disableBody(true, true); // Remove the coin from the screen
         scoreManager.increaseScore(10); // Increase the score
+        this.coinSound.play();
         this.scoreText.setText("Score: " + scoreManager.getScore()); // Update score text
     }
 };
