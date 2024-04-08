@@ -102,6 +102,9 @@ class Game1 extends Phaser.Scene {
     };
 
     create() {
+        scoreManager.level = 0
+        scoreManager.level = 2;
+
         const { width, height } = this.scale;
     
         this.background.push({

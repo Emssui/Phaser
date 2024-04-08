@@ -84,6 +84,7 @@ class Game extends Phaser.Scene {
         this.load.image('ceiling', 'assets/images/untitled.png');  
         this.load.image('lava', 'assets/images/lava.png');
         this.load.image('button', 'assets/images/button.png');
+        this.load.image('red', 'assets/images/red.png');
 
         this.load.audio('jump', 'assets/audios/jump.mp3');
         this.load.audio('coinSound', 'assets/audios/coin.mp3');
@@ -94,12 +95,15 @@ class Game extends Phaser.Scene {
     };
 
     create() {
+        scoreManager.level = 0
+        scoreManager.level = 1;
+
         const map = this.make.tilemap({ 
             key: 'map'
         });
         const tileset = map.addTilesetImage('spritesheet', 'tiles');
 
-        const groundLayer = map.createLayer('Tile Layer 1', tileset, -600, -600);
+        this.groundLayer = map.createLayer('Tile Layer 1', tileset, -600, -600);
         const layer = map.createLayer('walls', tileset, -600, -600);
 
         var player1 = this.physics.add.sprite(340, 400, 'player1');
@@ -192,15 +196,15 @@ class Game extends Phaser.Scene {
         // Create ground group
         this.groundGroup = this.physics.add.staticGroup();
 
-        groundLayer.setCollisionBetween(0, 100);
+        this.groundLayer.setCollisionBetween(0, 100);
         layer.setCollisionBetween(0, 100);
 
         // Check for overlap with ground to update isPlayerOnGround flag
-        this.physics.add.collider(player1, groundLayer, () => {
+        this.physics.add.collider(player1, this.groundLayer, () => {
             this.isPlayerOnGround = true;
         }, null, this);
 
-        this.physics.add.collider(this.coins, groundLayer);
+        this.physics.add.collider(this.coins, this.groundLayer);
         this.physics.add.collider(player1, layer);
 
         this.score = 0;
@@ -214,6 +218,12 @@ class Game extends Phaser.Scene {
             this.scene.start("GameScene2");
         });
 
+        this.time.addEvent({
+            delay: 500,
+            loop: true,
+            callback: this.createLeaves,
+            callbackScope: this
+        });
 
         // Ground check hitbox
         this.groundHitbox = this.physics.add.sprite(player1.x, player1.y + player1.height / 2, 'ground');
@@ -221,6 +231,7 @@ class Game extends Phaser.Scene {
     };
 
     update() {
+        console.log(this.player.x, this.player.y)
         if(this.player.body.velocity.y > 0) {
             this.isPlayerOnGround = false;
         }
@@ -231,19 +242,39 @@ class Game extends Phaser.Scene {
         this.scoreText.setPosition(this.player.x - 100, 250);
         this.groundHitbox.setPosition(this.player.x, this.player.y + this.player.height / 2);
     };
-
-    
-    restartScene() {
-        scoreManager.score = 0;
-        // Restart the current scene
-        this.scene.restart();
-    }
     
     collectCoin(player, coin) {
         coin.disableBody(true, true); // Remove the coin from the screen
         scoreManager.increaseScore(10); // Increase the score
         this.coinSound.play();
         this.scoreText.setText("Score: " + scoreManager.getScore()); // Update score text
+    }
+
+    
+    createLeaves() {
+        const leafPositions = [
+            { x: Phaser.Math.Between(570, 5370), y: 0 },
+        ];
+        
+        leafPositions.forEach(pos => {
+            const leaf = this.physics.add.image(pos.x, pos.y, 'red');
+
+            leaf.setDepth(2)            
+            leaf.setBounce(0);
+            leaf.setDrag(100);
+            leaf.setGravityY(300); 
+
+            this.physics.add.collider(leaf, this.player, () => {
+                this.scene.start("DeathScene");
+            });
+
+            this.tweens.add({
+                targets: leaf,
+                angle: leaf.angle + 10,
+                repeat: 0 
+            });
+        });
+        
     }
 
     movePlayer() {

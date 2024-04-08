@@ -93,6 +93,9 @@ class Game4 extends Phaser.Scene {
     };
 
     create() {
+        scoreManager.level = 0
+        scoreManager.level = 4;
+
         const { width, height } = this.scale;
     
         this.background.push({
@@ -259,16 +262,9 @@ class Game4 extends Phaser.Scene {
         this.groundHitbox.setPosition(this.player.x, this.player.y + this.player.height / 2);
     };
 
-    
-    restartScene() {
-        scoreManager.score = 0;
-        // Restart the current scene
-        this.scene.restart();
-    }
-    
     collectCoin(player, coin) {
         coin.disableBody(true, true); // Remove the coin from the screen
-        scoreManager.increaseScore(10); // Increase the score
+        scoreManager.increaseScore(10);
         this.coinSound.play();
         this.scoreText.setText("Score: " + scoreManager.getScore()); // Update score text
     }

@@ -108,6 +108,9 @@ class Game2 extends Phaser.Scene {
     };
 
     create() {
+        scoreManager.level = 0
+        scoreManager.level = 3;
+
         const { width, height } = this.scale;
     
         this.background.push({
@@ -325,11 +328,6 @@ class Game2 extends Phaser.Scene {
         });
     }
     
-    restartScene() {
-        scoreManager.score = 0;
-        this.scene.restart();
-    }
-
     collectCoin(player, coin) {
         coin.disableBody(true, true); // Remove the coin from the screen
         scoreManager.increaseScore(10); // Increase the score

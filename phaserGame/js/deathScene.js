@@ -35,9 +35,19 @@ class Death extends Phaser.Scene {
         // if you click inside the box variable then it will change the scene
         if (this.input.activePointer.leftButtonDown() && this.input.activePointer.x > this.sys.game.config.width / 2 - 150 && this.input.activePointer.x < this.sys.game.config.width / 2 + 150 && this.input.activePointer.y > this.sys.game.config.height / 2 - 50 && this.input.activePointer.y < this.sys.game.config.height / 2 + 50)
         {
+            if(scoreManager.level == 1) {
+                this.scene.start('GameScene');
+            } else if(scoreManager.level == 2) {
+                this.scene.start('GameScene2');
+            } else if(scoreManager.level == 3) {
+                this.scene.start('GameScene3');
+            } else if(scoreManager.level == 4) {
+                this.scene.start('GameScene4');
+            }
+
             this.sound.stopAll();
             scoreManager.score = 0;
-            this.scene.start('GameScene');
+            scoreManager.level = 0; 
         }
 
         if(scoreManager.score == 0) {
