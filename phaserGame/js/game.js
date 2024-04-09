@@ -86,17 +86,37 @@ class Game extends Phaser.Scene {
         this.load.image('button', 'assets/images/button.png');
         this.load.image('red', 'assets/images/red.png');
 
+        // Movement 
+        this.load.image('up', 'assets/images/up.png');
+        this.load.image('down', 'assets/images/down.png');  
+        this.load.image('left', 'assets/images/left.png');
+        this.load.image('right', 'assets/images/right.png');
+
         this.load.audio('jump', 'assets/audios/jump.mp3');
         this.load.audio('coinSound', 'assets/audios/coin.mp3');
 
         for(let i= 0; i < 500; i++) {
             this.load.image('ground' + i, 'assets/images/ground.png');
         }
+
+        this.isMobile = this.checkIsMobile();
     };
 
     create() {
         scoreManager.level = 0
         scoreManager.level = 1;
+
+        const buttonOffsetX = 150; // Adjust the offset as needed
+        const buttonOffsetY = 50; // Adjust the offset as needed
+        this.up = this.add.sprite(this.cameras.main.width - buttonOffsetX, this.cameras.main.height - buttonOffsetY * 2, 'up');
+        this.down = this.add.sprite(this.cameras.main.width - buttonOffsetX, this.cameras.main.height - buttonOffsetY, 'down');
+        this.left = this.add.sprite(this.cameras.main.width - buttonOffsetX * 2, this.cameras.main.height - buttonOffsetY, 'left');
+        this.right = this.add.sprite(this.cameras.main.width, this.cameras.main.height - buttonOffsetY, 'right');
+
+        this.up.setScale(0.3);
+        this.right.setScale(0.3);
+        this.left.setScale(0.3);
+        this.down.setScale(0.3);
 
         const map = this.make.tilemap({ 
             key: 'map'
@@ -231,7 +251,13 @@ class Game extends Phaser.Scene {
     };
 
     update() {
-        console.log(this.player.x, this.player.y)
+        const buttonOffsetX = 150; // Adjust the offset as needed
+        const buttonOffsetY = 150; // Adjust the offset as needed
+        this.up.setPosition(this.cameras.main.scrollX + this.cameras.main.width - buttonOffsetX, this.cameras.main.scrollY + this.cameras.main.height - buttonOffsetY * 2);
+        this.down.setPosition(this.cameras.main.scrollX + this.cameras.main.width - buttonOffsetX, this.cameras.main.scrollY + this.cameras.main.height - buttonOffsetY);
+        this.left.setPosition(this.cameras.main.scrollX + this.cameras.main.width - buttonOffsetX * 2, this.cameras.main.scrollY + this.cameras.main.height - buttonOffsetY);
+        this.right.setPosition(this.cameras.main.scrollX + this.cameras.main.width, this.cameras.main.scrollY + this.cameras.main.height - buttonOffsetY);
+
         if(this.player.body.velocity.y > 0) {
             this.isPlayerOnGround = false;
         }
@@ -250,6 +276,10 @@ class Game extends Phaser.Scene {
         this.scoreText.setText("Score: " + scoreManager.getScore()); // Update score text
     }
 
+    checkIsMobile() {
+        const userAgent = navigator.userAgent.toLowerCase();
+        return /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent);
+    }
     
     createLeaves() {
         const leafPositions = [

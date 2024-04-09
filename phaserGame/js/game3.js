@@ -298,7 +298,6 @@ class Game2 extends Phaser.Scene {
         }
     }
     
-
     createMissile() {
         const missilePosition = [
             { x: Phaser.Math.Between(2000, 12600), y: Phaser.Math.Between(135, 730) },
@@ -312,14 +311,28 @@ class Game2 extends Phaser.Scene {
             missile.body.allowGravity = false;
     
             // Create particle emitter attached to the missile
-            const particles = this.add.particles('red', {
-                speed: 10,
-                scale: { start: 5, end: 0 },
-                blendMode: 'ADD',
-                follow: missile
+            this.particles2 = this.add.particles(150, 0, 'red', {
+                blendMode: 'SCREEN',
+                scale: { start: 3, end: 0 },
+                rotate: { start: 0, end: 360 },
+                speed: 50,
+                lifespan: 2000,
+                frequency: 200,
+                gravityY: 0,
+                follow: missile, // Set the emitter to follow the piraya
+                followOffset: {x: 0, y: 0} // Adjust offset as needed
             });
 
-            particles.setDepth(2);
+            this.tweens.add({
+                targets: this.particles2,
+                particleX: 700,
+                yoyo: true,
+                repeat: -1,
+                ease: 'sine.inout',
+                duration: 1500
+            });
+
+            this.particles2.setDepth(2);
             
             this.physics.add.collider(this.player, missile,() => {
                 this.sound.stopAll();
