@@ -1,2 +1,1 @@
-- The lek1 folder contains phaser V2 and the lek1V3 contains phaser V3.
-- The phaserleaf folder contains a projec about leaves falling down a tree in a interval of 6 seconds and they are random size.
+Contains a mobile/PC friendly game with challenges befitting for all kinds of people
