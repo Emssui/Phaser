@@ -31,8 +31,10 @@ class Victory extends Phaser.Scene {
             this.sound.stopAll();
             scoreManager.score = 0;
             scoreManager.level = 0; 
+            scoreManager.totalScore = 0;
         }
 
-        this.add.text(this.sys.game.config.width / 2, this.sys.game.config.height / 2 + 200, 'Total Score: ' + scoreManager.score, { fontSize: '50px', fill: '#8B0000' }).setOrigin(0.5);               
+        this.add.text(this.sys.game.config.width / 2, this.sys.game.config.height / 2 + 200, 'Current Score: ' + scoreManager.score, { fontSize: '50px', fill: '#8B0000' }).setOrigin(0.5);       
+        this.add.text(this.sys.game.config.width / 2, this.sys.game.config.height / 2 + 250, 'Total Score: ' + scoreManager.totalScore, { fontSize: '50px', fill: '#8B0000' }).setOrigin(0.5);                       
     }
 }

@@ -88,7 +88,6 @@ class Game extends Phaser.Scene {
 
         // Movement 
         this.load.image('up', 'assets/images/up.png');
-        this.load.image('down', 'assets/images/down.png');  
         this.load.image('left', 'assets/images/left.png');
         this.load.image('right', 'assets/images/right.png');
 
@@ -105,22 +104,19 @@ class Game extends Phaser.Scene {
     create() {
         scoreManager.level = 0
         scoreManager.level = 1;
+        
+        this.up = this.add.sprite(1480, 700,'up').setInteractive().setScrollFactor(0);
+        this.left = this.add.sprite(300, 700,'left').setInteractive().setScrollFactor(0);
+        this.right = this.add.sprite(500, 700,'right').setInteractive().setScrollFactor(0);
 
-        const buttonOffsetX = 150; // Adjust the offset as needed
-        const buttonOffsetY = 50; // Adjust the offset as needed
-        this.up = this.add.sprite(this.cameras.main.width - buttonOffsetX, this.cameras.main.height - buttonOffsetY * 2, 'up');
-        this.down = this.add.sprite(this.cameras.main.width - buttonOffsetX, this.cameras.main.height - buttonOffsetY, 'down');
-        this.left = this.add.sprite(this.cameras.main.width - buttonOffsetX * 2, this.cameras.main.height - buttonOffsetY, 'left');
-        this.right = this.add.sprite(this.cameras.main.width, this.cameras.main.height - buttonOffsetY, 'right');
-
-        this.up.setScale(0.3);
-        this.right.setScale(0.3);
-        this.left.setScale(0.3);
-        this.down.setScale(0.3);
+        this.up.setScale(0.2).setDepth(3).setVisible(false);
+        this.right.setScale(0.2).setDepth(3).setVisible(false);
+        this.left.setScale(0.2).setDepth(3).setVisible(false);        
 
         const map = this.make.tilemap({ 
             key: 'map'
         });
+
         const tileset = map.addTilesetImage('spritesheet', 'tiles');
 
         this.groundLayer = map.createLayer('Tile Layer 1', tileset, -600, -600);
@@ -231,10 +227,12 @@ class Game extends Phaser.Scene {
         
         // lava restart
         this.physics.add.collider(this.player, this.lava, () => {
+            this.sound.stopAll();
             this.scene.start("DeathScene");
         });
 
         this.physics.add.collider(this.player, this.btn, () => {
+            this.sound.stopAll();
             this.scene.start("GameScene2");
         });
 
@@ -247,17 +245,38 @@ class Game extends Phaser.Scene {
 
         // Ground check hitbox
         this.groundHitbox = this.physics.add.sprite(player1.x, player1.y + player1.height / 2, 'ground');
-        this.groundHitbox.setVisible(false); // Make it invisible
+        this.groundHitbox.setVisible(false);
+
+        
+        if(this.isMobile) {
+            this.up.setVisible(true);
+            this.left.setVisible(true);
+            this.right.setVisible(true);
+        }
+
+        this.up.on('pointerdown', () => {
+            this.moveMobilePlayer('up');
+        });
+    
+        this.left.on('pointerdown', () => {
+            this.keys.A.isDown = true;
+        });
+    
+        this.right.on('pointerdown', () => {
+            this.keys.D.isDown = true;
+        });
+    
+        // Add event listeners to stop movement when images are released
+        this.left.on('pointerup', () => {
+            this.keys.A.isDown = false;
+        });
+    
+        this.right.on('pointerup', () => {
+            this.keys.D.isDown = false;
+        });
     };
 
     update() {
-        const buttonOffsetX = 150; // Adjust the offset as needed
-        const buttonOffsetY = 150; // Adjust the offset as needed
-        this.up.setPosition(this.cameras.main.scrollX + this.cameras.main.width - buttonOffsetX, this.cameras.main.scrollY + this.cameras.main.height - buttonOffsetY * 2);
-        this.down.setPosition(this.cameras.main.scrollX + this.cameras.main.width - buttonOffsetX, this.cameras.main.scrollY + this.cameras.main.height - buttonOffsetY);
-        this.left.setPosition(this.cameras.main.scrollX + this.cameras.main.width - buttonOffsetX * 2, this.cameras.main.scrollY + this.cameras.main.height - buttonOffsetY);
-        this.right.setPosition(this.cameras.main.scrollX + this.cameras.main.width, this.cameras.main.scrollY + this.cameras.main.height - buttonOffsetY);
-
         if(this.player.body.velocity.y > 0) {
             this.isPlayerOnGround = false;
         }
@@ -307,14 +326,11 @@ class Game extends Phaser.Scene {
         
     }
 
-    movePlayer() {
-        // If the A key or left arrow key is pressed
-        if (this.keys.A.isDown || this.keys.left.isDown) {
+    movePlayer(direction) {
+        if (this.keys.A.isDown) {
             // Move the player to the left
             this.player.setVelocityX(-400);
-        }
-        // If the D key or right arrow key is pressed
-        else if (this.keys.D.isDown || this.keys.right.isDown) {
+        } else if (this.keys.D.isDown) {
             // Move the player to the right
             this.player.setVelocityX(400);
         }
@@ -330,6 +346,14 @@ class Game extends Phaser.Scene {
             // Move the player upward (jump)
             this.player.setVelocityY(-320);
             // Set the player to not be on the ground
+            this.isPlayerOnGround = false;
+        }
+    }
+
+    moveMobilePlayer(direction) {
+        if (direction === 'up' && this.isPlayerOnGround) {
+            this.player.setVelocityY(-320);
+            this.jump.play();
             this.isPlayerOnGround = false;
         }
     }

@@ -95,11 +95,31 @@ class Game5 extends Phaser.Scene {
         for(let i= 0; i < 500; i++) {
             this.load.image('ground' + i, 'assets/images/ground.png');
         }
+
+        this.load.image('up', 'assets/images/up.png');
+        this.load.image('down', 'assets/images/down.png');
+        this.load.image('left', 'assets/images/left.png');
+        this.load.image('right', 'assets/images/right.png');
+        this.load.image('shift', 'assets/images/sprint.png');
+
+        this.isMobile = this.checkIsMobile();
     };
 
     create() {
         scoreManager.level = 0
         scoreManager.level = 5;
+
+        this.up = this.add.sprite(1480, 600,'up').setInteractive().setScrollFactor(0);
+        this.left = this.add.sprite(300, 700,'left').setInteractive().setScrollFactor(0);
+        this.right = this.add.sprite(500, 700,'right').setInteractive().setScrollFactor(0);
+        this.down = this.add.sprite(1480, 750,'down').setInteractive().setScrollFactor(0);
+        this.shift = this.add.sprite(1330, 675,'shift').setInteractive().setScrollFactor(0);
+
+        this.up.setScale(0.2).setDepth(3).setVisible(false);
+        this.down.setScale(0.2).setDepth(3).setVisible(false);
+        this.right.setScale(0.2).setDepth(3).setVisible(false);
+        this.left.setScale(0.2).setDepth(3).setVisible(false);   
+        this.shift.setScale(0.2).setDepth(3).setVisible(false);    
 
         const { width, height } = this.scale;
     
@@ -123,7 +143,7 @@ class Game5 extends Phaser.Scene {
         this.btn = this.physics.add.sprite(6000, 600, 'button');
         this.door = this.physics.add.sprite(3850, 700, 'door');
 
-        this.door.setDepth(1);
+        this.door.setDepth(2);
         this.door.setScale(0.5);
         this.door.setImmovable(true);
         this.door.body.allowGravity = false; // Disable gavity for the lava  
@@ -159,7 +179,7 @@ class Game5 extends Phaser.Scene {
         // Create an array to store coin sprites
         this.coins = this.physics.add.group({
             key: 'coin1',
-            repeat: 13, // Number of coins to create
+            repeat: 12, // Number of coins to create
             setXY: { x: 1000, y: 100, stepX: 240 } // Position of the first coin and the distance between coins
         });
 
@@ -241,10 +261,58 @@ class Game5 extends Phaser.Scene {
         // Ground check hitbox
         this.groundHitbox = this.physics.add.sprite(player1.x, player1.y + player1.height / 2, 'ground');
         this.groundHitbox.setVisible(false); // Make it invisible
+
+        if(this.isMobile) {
+            this.up.setVisible(true);
+            this.down.setVisible(true);
+            this.left.setVisible(true);
+            this.right.setVisible(true);
+            this.shift.setVisible(true);
+        }
+
+        this.up.on('pointerdown', () => {
+            this.keys.W.isDown = true;
+        });
+
+        this.down.on('pointerdown', () => {
+            this.keys.S.isDown = true;
+        });
+    
+        this.left.on('pointerdown', () => {
+            this.keys.A.isDown = true;
+        });
+    
+        this.right.on('pointerdown', () => {
+            this.keys.D.isDown = true;
+        });
+
+        this.shift.on('pointerdown', () => {
+            this.keys.shift.isDown = true;
+        });
+    
+        // Add event listeners to stop movement when images are released
+        this.up.on('pointerup', () => {
+            this.keys.W.isDown = false;
+        });
+
+        this.down.on('pointerup', () => {
+            this.keys.S.isDown = false;
+        });
+
+        this.left.on('pointerup', () => {
+            this.keys.A.isDown = false;
+        });
+    
+        this.right.on('pointerup', () => {
+            this.keys.D.isDown = false;
+        });
+
+        this.shift.on('pointerup', () => {
+            this.keys.shift.isDown = false;
+        });
     };
 
     update() {
-        console.log(this.player.body.x, this.player.body.y);
         this.timerText.setText('Time Left: ' + this.timer);
 
         if(this.timer <= 0) {
@@ -288,6 +356,10 @@ class Game5 extends Phaser.Scene {
         this.groundHitbox.setPosition(this.player.x, this.player.y + this.player.height / 2);
     };
     
+    checkIsMobile() {
+        const userAgent = navigator.userAgent.toLowerCase();
+        return /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent);
+    }
 
     movePlayer() {
         // If the Shift key is down, apply boost
@@ -300,10 +372,10 @@ class Game5 extends Phaser.Scene {
                 this.player.setVelocityX(700);
             } else if (this.keys.W.isDown) {
                 // Move the player upward (jump)
-                this.player.setVelocityY(-620);
+                this.player.setVelocityY(-700);
             } else if (this.keys.S.isDown) {
                 // Move the player upward (jump)
-                this.player.setVelocityY(620);
+                this.player.setVelocityY(700);
             }
         } else {
             // If the A key or left arrow key is pressed

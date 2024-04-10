@@ -87,14 +87,31 @@ class Game4 extends Phaser.Scene {
         this.load.image('water', 'assets/images/water.png');
         this.load.image('background', 'assets/images/parallax.png');
 
+        this.load.image('up', 'assets/images/up.png');
+        this.load.image('down', 'assets/images/down.png');
+        this.load.image('left', 'assets/images/left.png');
+        this.load.image('right', 'assets/images/right.png');
+
         for(let i= 0; i < 500; i++) {
             this.load.image('ground' + i, 'assets/images/ground.png');
         }
+
+        this.isMobile = this.checkIsMobile();
     };
 
     create() {
         scoreManager.level = 0
         scoreManager.level = 4;
+
+        this.up = this.add.sprite(1480, 600,'up').setInteractive().setScrollFactor(0);
+        this.left = this.add.sprite(300, 700,'left').setInteractive().setScrollFactor(0);
+        this.right = this.add.sprite(500, 700,'right').setInteractive().setScrollFactor(0);
+        this.down = this.add.sprite(1480, 750,'down').setInteractive().setScrollFactor(0);
+
+        this.up.setScale(0.2).setDepth(3).setVisible(false);
+        this.down.setScale(0.2).setDepth(3).setVisible(false);
+        this.right.setScale(0.2).setDepth(3).setVisible(false);
+        this.left.setScale(0.2).setDepth(3).setVisible(false);    
 
         const { width, height } = this.scale;
     
@@ -223,6 +240,7 @@ class Game4 extends Phaser.Scene {
         }); 
 
         this.physics.add.collider(this.player, this.btn, () => {
+            this.sound.stopAll();
             this.scene.start("GameScene5");
         });
 
@@ -231,6 +249,46 @@ class Game4 extends Phaser.Scene {
         this.groundHitbox.setVisible(false); // Make it invisible
 
         this.timeout = true;
+
+        if(this.isMobile) {
+            this.up.setVisible(true);
+            this.down.setVisible(true);
+            this.left.setVisible(true);
+            this.right.setVisible(true);
+        }
+
+        this.up.on('pointerdown', () => {
+            this.keys.W.isDown = true;
+        });
+
+        this.down.on('pointerdown', () => {
+            this.keys.S.isDown = true;
+        });
+    
+        this.left.on('pointerdown', () => {
+            this.keys.A.isDown = true;
+        });
+    
+        this.right.on('pointerdown', () => {
+            this.keys.D.isDown = true;
+        });
+    
+        // Add event listeners to stop movement when images are released
+        this.up.on('pointerup', () => {
+            this.keys.W.isDown = false;
+        });
+
+        this.down.on('pointerup', () => {
+            this.keys.S.isDown = false;
+        });
+
+        this.left.on('pointerup', () => {
+            this.keys.A.isDown = false;
+        });
+    
+        this.right.on('pointerup', () => {
+            this.keys.D.isDown = false;
+        });
     };
 
     update() {
@@ -261,6 +319,11 @@ class Game4 extends Phaser.Scene {
 
         this.groundHitbox.setPosition(this.player.x, this.player.y + this.player.height / 2);
     };
+
+    checkIsMobile() {
+        const userAgent = navigator.userAgent.toLowerCase();
+        return /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent);
+    }
 
     collectCoin(player, coin) {
         coin.disableBody(true, true); // Remove the coin from the screen

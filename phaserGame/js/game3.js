@@ -99,17 +99,25 @@ class Game2 extends Phaser.Scene {
         this.load.image('button', 'assets/images/button.png');
         this.load.image('background', 'assets/images/parallax.png');
 
+        this.load.image('up', 'assets/images/up.png');
+
         for(let i = 0; i < 500; i++) {
             this.load.image('ground' + i, 'assets/images/ground.png');
         }
 
         this.load.audio('jump3', 'assets/audios/jetpack.mp3');
         this.load.audio('coinSound', 'assets/audios/coin.mp3');
+
+        this.isMobile = this.checkIsMobile();
     };
 
     create() {
         scoreManager.level = 0
         scoreManager.level = 3;
+
+        this.up = this.add.sprite(1480, 700,'up').setInteractive().setScrollFactor(0);
+
+        this.up.setScale(0.2).setDepth(3).setVisible(false);
 
         const { width, height } = this.scale;
     
@@ -230,10 +238,10 @@ class Game2 extends Phaser.Scene {
         this.physics.add.collider(this.player, this.jetPack, () => {
             this.isjetpackTrue = true;
             this.jetPack.setVisible(false);
-
         });
 
         this.physics.add.collider(this.player, this.btn, () => {
+            this.sound.stopAll();
             this.scene.start("GameScene4");
         });
 
@@ -256,6 +264,17 @@ class Game2 extends Phaser.Scene {
 
         this.player.setVelocityX(400);
         this.frameCounter = 0;
+
+        if(this.isMobile) {
+            this.up.setVisible(true);
+        }
+
+        this.up.on('pointerdown', () => {
+            this.keys.W.isDown = true;
+        });
+        this.up.on('pointerup', () => {
+            this.keys.W.isDown = false;
+        });
     };
     
     update() {
@@ -296,6 +315,11 @@ class Game2 extends Phaser.Scene {
                 this.particles.setVisible(false);
             }
         }
+    }
+
+    checkIsMobile() {
+        const userAgent = navigator.userAgent.toLowerCase();
+        return /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent);
     }
     
     createMissile() {

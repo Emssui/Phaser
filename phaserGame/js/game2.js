@@ -96,14 +96,28 @@ class Game1 extends Phaser.Scene {
         this.load.image('button', 'assets/images/button.png');
         this.load.image('background', 'assets/images/parallax.png');
 
+        this.load.image('up', 'assets/images/up.png');
+        this.load.image('left', 'assets/images/left.png');
+        this.load.image('right', 'assets/images/right.png');
+
         for(let i = 0; i < 500; i++) {
             this.load.image('ground' + i, 'assets/images/ground.png');
         }
+
+        this.isMobile = this.checkIsMobile();
     };
 
     create() {
         scoreManager.level = 0
         scoreManager.level = 2;
+                
+        this.up = this.add.sprite(1480, 700,'up').setInteractive().setScrollFactor(0);
+        this.left = this.add.sprite(300, 700,'left').setInteractive().setScrollFactor(0);
+        this.right = this.add.sprite(500, 700,'right').setInteractive().setScrollFactor(0);
+
+        this.up.setScale(0.2).setDepth(3).setVisible(false);
+        this.right.setScale(0.2).setDepth(3).setVisible(false);
+        this.left.setScale(0.2).setDepth(3).setVisible(false);    
 
         const { width, height } = this.scale;
     
@@ -229,6 +243,33 @@ class Game1 extends Phaser.Scene {
     
         this.groundHitbox = this.physics.add.sprite(player1.x, player1.y + player1.height / 2, 'ground');
         this.groundHitbox.setVisible(false);
+
+        if(this.isMobile) {
+            this.up.setVisible(true);
+            this.left.setVisible(true);
+            this.right.setVisible(true);
+        }
+        
+        this.up.on('pointerdown', () => {
+            this.moveMobilePlayer('up');
+        });
+    
+        this.left.on('pointerdown', () => {
+            this.keys.A.isDown = true;
+        });
+    
+        this.right.on('pointerdown', () => {
+            this.keys.D.isDown = true;
+        });
+    
+        // Add event listeners to stop movement when images are released
+        this.left.on('pointerup', () => {
+            this.keys.A.isDown = false;
+        });
+    
+        this.right.on('pointerup', () => {
+            this.keys.D.isDown = false;
+        });
     };
     
     update() {
@@ -296,6 +337,20 @@ class Game1 extends Phaser.Scene {
         button.body.allowGravity = false;
         button.direction = direction; // Set the direction property of the button
         return button;
+    }
+
+    
+    checkIsMobile() {
+        const userAgent = navigator.userAgent.toLowerCase();
+        return /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent);
+    }
+    
+    moveMobilePlayer(direction) {
+        if (direction === 'up' && this.isPlayerOnGround) {
+            this.player.setVelocityY(-320);
+            this.jump.play();
+            this.isPlayerOnGround = false;
+        }
     }
 
     collectCoin(player, coin) {
